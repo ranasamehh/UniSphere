@@ -1,70 +1,60 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 const StudentDashboard = () => {
-    // 1. This "state" stores your history. 
-    // It starts with the two items you mentioned.
-    const [requests, setRequests] = useState([
-        { id: 1, type: 'Official Transcript', date: '13-Feb-2026', status: 'Pending Approval', color: 'orange' },
-        { id: 2, type: 'Enrollment Certificate', date: '01-Jan-2026', status: 'Completed', color: 'green' }
-    ]);
+    const [students, setStudents] = useState([]);
+    const [loading, setLoading] = useState(true);
 
-    // 2. This function runs when you click the button
-    const handleNewRequest = () => {
-        const newEntry = {
-            id: requests.length + 1,
-            type: 'Official Transcript',
-            date: new Date().toLocaleDateString(), // Today's date
-            status: 'Pending Approval',
-            color: 'orange'
-        };
-        // This adds the new entry to the table automatically!
-        setRequests([newEntry, ...requests]);
-    };
+    useEffect(() => {
+        fetch('http://localhost:5000/api/students')
+            .then(response => response.json())
+            .then(data => {
+                setStudents(data);
+                setLoading(false);
+            })
+            .catch(error => {
+                console.error('Error fetching students:', error);
+                setLoading(false);
+            });
+    }, []);
+
+    if (loading) return <h3 style={{ textAlign: 'center', marginTop: '50px' }}>Loading Student Records...</h3>;
 
     return (
-        <div style={{ padding: '20px', textAlign: 'left', fontFamily: 'Arial' }}>
-            <h1>Student Portal - Welcome Nada</h1>
-            <hr />
+        <div style={{ padding: '40px', fontFamily: 'Segoe UI, Tahoma, Geneva, Verdana, sans-serif' }}>
+            <h1 style={{ color: '#2c3e50', marginBottom: '10px' }}>UniSphere Student Directory</h1>
+            <p style={{ color: '#7f8c8d' }}>Viewing all enrolled students across departments.</p>
+            <hr style={{ border: '0.5px solid #eee' }} />
 
-            {/* Attendance Section */}
-            <section style={{ marginBottom: '30px' }}>
-                <h2>Attendance Summary</h2>
-                <p>Database Systems: <strong>92%</strong></p>
-                <p>Software Engineering: <strong>85%</strong></p>
-            </section>
-
-            {/* Action Button */}
-            <button 
-                onClick={handleNewRequest}
-                style={{ padding: '10px 20px', backgroundColor: '#28a745', color: 'white', border: 'none', borderRadius: '5px', cursor: 'pointer', marginBottom: '20px' }}
-            >
-                Request New Transcript
-            </button>
-
-            {/* Your History Table */}
-            <div style={{ marginTop: '30px' }}>
-                <h3>Request History</h3>
-                <table border="1" style={{ width: '100%', borderCollapse: 'collapse' }}>
-                    <thead style={{ backgroundColor: '#f2f2f2' }}>
-                        <tr>
-                            <th style={{ padding: '10px' }}>Document</th>
-                            <th style={{ padding: '10px' }}>Date Submitted</th>
-                            <th style={{ padding: '10px' }}>Status</th>
+            <div style={{ marginTop: '30px', overflowX: 'auto' }}>
+                <table style={{ width: '100%', borderCollapse: 'collapse', backgroundColor: 'white' }}>
+                    <thead>
+                        <tr style={{ backgroundColor: '#34495e', color: 'white', textAlign: 'left' }}>
+                            <th style={{ padding: '15px' }}>ID</th>
+                            <th style={{ padding: '15px' }}>Full Name</th>
+                            <th style={{ padding: '15px' }}>Email</th>
+                            <th style={{ padding: '15px' }}>Phone</th>
+                            <th style={{ padding: '15px' }}>GPA</th>
                         </tr>
                     </thead>
                     <tbody>
-                        {requests.map((item) => (
-                            <tr key={item.id}>
-                                <td style={{ padding: '10px' }}>{item.type}</td>
-                                <td style={{ padding: '10px' }}>{item.date}</td>
-                                <td style={{ padding: '10px', color: item.color, fontWeight: 'bold' }}>
-                                    {item.status}
-                                </td>
+                        {students.map((student) => (
+                            <tr key={student.student_id} style={{ borderBottom: '1px solid #f2f2f2' }}>
+                                <td style={{ padding: '15px' }}>{student.student_id}</td>
+                                <td style={{ padding: '15px' }}>{student.first_name} {student.last_name}</td>
+                                <td style={{ padding: '15px' }}>{student.email}</td>
+                                <td style={{ padding: '15px' }}>{student.phone_number}</td>
+                                <td style={{ padding: '15px', fontWeight: 'bold', color: '#2980b9' }}>{student.gpa}</td>
                             </tr>
                         ))}
                     </tbody>
                 </table>
             </div>
+
+            {students.length === 0 && (
+                <div style={{ textAlign: 'center', marginTop: '20px', color: '#e74c3c' }}>
+                    No students found. Please ensure your XAMPP database has records.
+                </div>
+            )}
         </div>
     );
 };
